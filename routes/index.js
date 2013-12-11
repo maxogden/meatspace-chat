@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function (app, nconf, io) {
+module.exports = function (app, nconf, io, binarySockets) {
   var crypto = require('crypto');
   var Publico = require('meatspace-publico');
   var nativeClients = require('../clients.json');
@@ -42,7 +42,9 @@ module.exports = function (app, nconf, io) {
   };
 
   var emitChat = function (socket, chat) {
-    socket.emit('message', { chat: chat });
+    console.log(socket)
+    if (socket.write) socket.write('hi')      
+    else socket.emit('message', { chat: chat });
   };
 
   app.get('/info', function (req, res) {
@@ -124,8 +126,7 @@ module.exports = function (app, nconf, io) {
     }
   });
 
-  io.sockets.on('connection', function (socket) {
-
+  function sendInitialChats(socket) {
     // Fire out an initial burst of images to the connected client, assuming there are any available
     getSortedChats(function (err, results) {
       if(results.chats && results.chats.length > 0) {
@@ -134,26 +135,36 @@ module.exports = function (app, nconf, io) {
         });
       }
     });
+  }
 
-    socket.on('message', function (data) {
-      if (nativeClients.indexOf(data.apiKey) > -1) {
-        var ip = '0.0.0.0';
+  function onSocketMessage(data) {
+    if (nativeClients.indexOf(data.apiKey) > -1) {
+      var ip = '0.0.0.0';
 
-        addChat(data.message, data.picture, data.fingerprint, data.fingerprint, ip, function (err) {
-          if (err) {
-            console.log('error posting ', err.toString());
-          } else {
-            var currDate = Date.now();
-            logger.put('api!' + currDate, {
-              ip: ip,
-              fingerprint: data.fingerprint,
-              created: currDate
-            });
-          }
-        });
-      } else {
-        console.log('Invalid apiKey');
-      }
-    });
+      addChat(data.message, data.picture, data.fingerprint, data.fingerprint, ip, function (err) {
+        if (err) {
+          console.log('error posting ', err.toString());
+        } else {
+          var currDate = Date.now();
+          logger.put('api!' + currDate, {
+            ip: ip,
+            fingerprint: data.fingerprint,
+            created: currDate
+          });
+        }
+      });
+    } else {
+      console.log('Invalid apiKey');
+    }
+  }
+  
+  io.sockets.on('connection', function (socket) {
+    sendInitialChats(socket);
+    socket.on('message', onSocketMessage);
   });
+  
+  return {
+    sendInitialChats: sendInitialChats,
+    onSocketMessage: onSocketMessage
+  }
 };

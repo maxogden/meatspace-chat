@@ -6,6 +6,7 @@ requirejs.config({
     'fingerprint': 'lib/fingerprint/fingerprint',
     'transform': 'transform',
     'md5': 'lib/js-md5/js/md5',
+    'websocketStream': 'lib/websocket-stream',
     'waypoints': 'lib/jquery-waypoints/waypoints'
   },
   shim: {

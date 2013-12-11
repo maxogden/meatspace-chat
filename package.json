@@ -26,7 +26,10 @@
     "socket.io": ">= 0.9.16",
     "crypto": "0.0.3",
     "level": ">= 0.10.0",
-    "hood": ">= 0.1.0"
+    "hood": ">= 0.1.0",
+    "websocket-stream": "~0.4.0",
+    "ws": "~0.4.31",
+    "hat": "0.0.3"
   },
   "devDependencies": {
     "grunt": ">= 0.4.x",
