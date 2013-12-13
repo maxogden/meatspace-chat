@@ -9,6 +9,7 @@ var websocketStream = require('websocket-stream')
 var wss = new WebSocketServer({ noServer: true })
 var nconf = require('nconf');
 var uuid = require('hat');
+var mbstream = require('multibuffer-stream');
 var settings = require('./settings')(app, configurations, express);
 
 nconf.argv().env().file({ file: 'local.json' });
@@ -22,9 +23,11 @@ server.on('upgrade', function(req, socket, head) {
   
   wss.handleUpgrade(req, socket, head, function(conn) {
     var stream = websocketStream(conn);
+    var packStream = mbstream.packStream()
+    packStream.pipe(stream)
     
     var id = uuid();
-    binarySockets[id] = stream;
+    binarySockets[id] = packStream;
     
     stream.once('end', leave);
     stream.once('error', leave);
@@ -33,9 +36,8 @@ server.on('upgrade', function(req, socket, head) {
       delete binarySockets[id];
     }
     
-    meat.sendInitialChats(stream);
+    meat.sendInitialChats(packStream);
     stream.on('data', meat.onSocketMessage);
-    stream.on('error', console.error);
   })
 })
 
@@ -45,9 +47,13 @@ io.configure(function () {
   io.set('transports', ['websocket', 'xhr-polling']);
   io.set('polling duration', 10);
   io.set('log level', 1);
+  io.set('destroy upgrade', false);
 });
 
 // routes
 var meat = require('./routes')(app, nconf, io, binarySockets);
 
-server.listen(process.env.PORT || nconf.get('port'));
+var port = process.env.PORT || nconf.get('port');
+server.listen(port);
+
+console.log('open :' + port);

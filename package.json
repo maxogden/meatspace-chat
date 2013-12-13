@@ -11,8 +11,10 @@
     "npm": "1.2.x"
   },
   "scripts": {
-    "build": "grunt",
+    "build": "browserify public/javascripts/main.js -o public/javascripts/main-bundle.js && grunt",
+    "browserify": "browserify public/javascripts/main.js -o public/javascripts/main-bundle.js",
     "test": "grunt travis",
+    "watch": "watchify public/javascripts/main.js -o public/javascripts/main-bundle.js -v",
     "start": "nodemon app.js"
   },
   "dependencies": {
@@ -29,7 +31,8 @@
     "hood": ">= 0.1.0",
     "websocket-stream": "~0.4.0",
     "ws": "~0.4.31",
-    "hat": "0.0.3"
+    "hat": "~0.0.3",
+    "multibuffer-stream": "~2.0.0"
   },
   "devDependencies": {
     "grunt": ">= 0.4.x",
@@ -43,6 +46,8 @@
     "nodemon": "*",
     "bower": ">= 1.2.7",
     "grunt-contrib-watch": "~0.5.3",
-    "jsdom": "~0.8.8"
+    "jsdom": "~0.8.8",
+    "watchify": "~0.4.1",
+    "browserify": "~3.2.2"
   }
 }

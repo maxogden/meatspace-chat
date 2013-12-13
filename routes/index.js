@@ -23,17 +23,13 @@ module.exports = function (app, nconf, io, binarySockets) {
       } else {
 
         var sorted = [];
+        
+        if (c.chats && c.chats.length > 0) {
+          c.chats.forEach(function (chat) {
+            sorted.unshift(chat);
+          });
 
-        try {
-          if (c.chats) {
-            c.chats.forEach(function (chat) {
-              sorted.unshift(chat);
-            });
-
-            c.chats = sorted;
-          }
-        } catch (e) {
-          console.log(e);
+          c.chats = sorted;
         }
 
         done(null, c);
@@ -42,8 +38,7 @@ module.exports = function (app, nconf, io, binarySockets) {
   };
 
   var emitChat = function (socket, chat) {
-    console.log(socket)
-    if (socket.write) socket.write('hi')      
+    if (socket.write) socket.write(new Buffer(chat))
     else socket.emit('message', { chat: chat });
   };
 
@@ -86,6 +81,9 @@ module.exports = function (app, nconf, io, binarySockets) {
         next(err);
       } else {
         try {
+          var binSockets = Object.keys(binarySockets).map(function(k) { 
+            emitChat(binarySockets[k], { key: c.key, value: c });
+          });
           emitChat(io.sockets, { key: c.key, value: c });
           next(null, 'sent!');
         } catch (err) {

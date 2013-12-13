@@ -7,6 +7,8 @@ var VideoShooter = require('./base/videoShooter');
 var Fingerprint = require('./lib/fingerprint');
 var md5 = require('./lib/js-md5').md5;
 var websocketStream = require('websocket-stream');
+var mbstream = require('multibuffer-stream');
+
 require('./lib/jquery-waypoints/waypoints.js'); // attaches to window.$
 
 var html = $('html');
@@ -34,8 +36,11 @@ if (binarySockets) {
   var socketAddr = 'ws://' + location.hostname +
       (location.port ? ':' + location.port : '') + '/binary'
   var socket = websocketStream(socketAddr)
-  socket.on('data', function(d) {
-    console.log(d)
+  socket.on('data', function(c) {
+    console.log('raw chunk', c)
+  })
+  socket.pipe(mbstream.unpackStream()).on('data', function(c) {
+    console.log('chunk', c)
   })
 } else {
   var socketAddr = location.protocol + '//' + location.hostname +
